@@ -27,9 +27,22 @@ class Workout{
 }
 
 class Running extends Workout{
+  type = "Running";
+
   constructor(coords,distance,duration,cadence){
     super(coords,distance,duration);
     this.cadence = cadence;
+    this.calcPace();
+    this.setDescription();
+  }
+
+  calcPace(){
+    this.pace = this.duration / this.distance;
+    return this.pace;
+  }
+
+  setDescription(){
+    this.description = `${this.type} on ${this.date.toDateString()}`;
   }
 
 }
@@ -38,8 +51,19 @@ class Cycling extends Workout{
   constructor(coords,distance,duration,elevationGain){
     super(coords,distance,duration);
     this.elevation = elevationGain;
+    this.calcPace();
+    this.setDescription();
   }
 
+
+  calcPace(){
+    this.pace = this.duration/60 / this.distance;
+    return this.pace;
+  }
+
+  setDescription(){
+    this.description = `${this.type} on ${this.date.toDateString()}`;
+  }
 }
 
 navigator.geolocation.getCurrentPosition(
@@ -75,6 +99,13 @@ navigator.geolocation.getCurrentPosition(
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
+
+      const data = JSON.parse(localStorage.getItem("workout"));
+      if(data){
+        workouts = data;
+        console.log(data);
+      }
+      
   
       L.marker(coords)
         .addTo(map)
@@ -109,7 +140,67 @@ navigator.geolocation.getCurrentPosition(
       workout = new Cycling([lat,lng],distance,duration,elevation);
     }
 
-    workouts.push(workout)
+    workouts.push(workout);
+
+    localStorage.setItem("workouts",JSON.stringify(workouts));
+    let html;
+
+    if (type === "running"){
+
+    html = `      
+    <li class="workout workout--running" data-id="1234567890">
+    <h2 class="workout__title">Running on April 14</h2>
+    <div class="workout__details">
+      <span class="workout__icon">🏃‍♂️</span>
+      <span class="workout__value">5.2</span>
+      <span class="workout__unit">km</span>
+    </div>
+    <div class="workout__details">
+      <span class="workout__icon">⏱</span>
+      <span class="workout__value">24</span>
+      <span class="workout__unit">min</span>
+    </div>
+    <div class="workout__details">
+      <span class="workout__icon">⚡️</span>
+      <span class="workout__value">4.6</span>
+      <span class="workout__unit">min/km</span>
+    </div>
+    <div class="workout__details">
+      <span class="workout__icon">🦶🏼</span>
+      <span class="workout__value">178</span>
+      <span class="workout__unit">spm</span>
+    </div>
+  </li>`
+    }else{
+
+    
+
+  html = `<li class="workout workout--cycling" data-id="1234567891">
+    <h2 class="workout__title">Cycling on April 5</h2>
+    <div class="workout__details">
+      <span class="workout__icon">🚴‍♀️</span>
+      <span class="workout__value">27</span>
+      <span class="workout__unit">km</span>
+    </div>
+    <div class="workout__details">
+      <span class="workout__icon">⏱</span>
+      <span class="workout__value">95</span>
+      <span class="workout__unit">min</span>
+    </div>
+    <div class="workout__details">
+      <span class="workout__icon">⚡️</span>
+      <span class="workout__value">16</span>
+      <span class="workout__unit">km/h</span>
+    </div>
+    <div class="workout__details">
+      <span class="workout__icon">⛰</span>
+      <span class="workout__value">223</span>
+      <span class="workout__unit">m</span>
+    </div>
+  </li> `;
+    }
+
+  form.insertAdjacentHTML("afterend",html);
 
         L.marker([lat, lng]).addTo(map)
         .bindPopup(L.popup({
@@ -134,6 +225,21 @@ navigator.geolocation.getCurrentPosition(
     inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
     inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
  })
+
+ containerWorkouts.addEventListener("click",function(e) {
+  const workoutEl = e.target.closeset(".workout");
+
+  if (!workoutEL) return;
+
+  const workout = workout.find((work) => work.id === workoutEL.dataset.id);
+
+  map.setView(workout.coords,13,{
+    animate:true,
+    pan:{
+      duration:1,
+    },
+  })
+ });
 
 
 
